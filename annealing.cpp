@@ -17,11 +17,11 @@ double sphere_function(solution_t x) {
 double schaffer_4(solution_t p) {
 	auto x = p.at(0);
 	auto y = p.at(1);
-	auto l = cos(sin(abs(x*x-y*y)))-0.5;
+	auto l = cos(sin(abs(x*x-y*y)));
 	l=l*l-0.5;
 	auto m = 1.0 + 0.001*(x*x+y*y);
 	m = m*m; 
-	return (0.5 + l/m);
+	return -(0.5 + l/m);
 }
 
 solution_t hillclimb(std::function< double(solution_t ) > f, 
@@ -82,7 +82,7 @@ int main() {
     uniform_real_distribution<> dist_(-50.0, 50.0);
     vector <double> start = {dist_(gen),dist_(gen)};
     
-    int K = 10000;
+    int K = 100000;
 
 	auto f = schaffer_4;
 
