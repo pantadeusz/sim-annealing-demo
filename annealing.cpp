@@ -1,11 +1,19 @@
-#include <iostream>
+/**
+ * Przykład porównawczy dla algorytmu wspinaczkowego i algorytmu symulowanego wyżarzania.
+ * 
+ * zadanie polega na maksymalizacji funkcji celu
+ * 
+ * */
+
 #include <algorithm>
-#include <vector>
-#include <numeric>
-#include <string>
 #include <functional>
-#include <random>
+#include <iostream>
 #include <list>
+#include <numeric>
+#include <random>
+#include <string>
+#include <vector>
+#include <map>
 
 using solution_t = std::vector<double>;
 
@@ -26,8 +34,7 @@ double schaffer_4(solution_t p)
 	return -(0.5 + l / m);
 }
 
-solution_t hillclimb(std::function<double(solution_t)> f,
-					 solution_t start,
+solution_t hillclimb(std::function<double(solution_t)> f, solution_t start,
 					 int K = 1000)
 {
 	using namespace std;
@@ -36,7 +43,8 @@ solution_t hillclimb(std::function<double(solution_t)> f,
 	{
 		auto new_solution = current_solution;
 		// check every coordinate
-		new_solution[(i >> 1) % current_solution.size()] += 0.01 * ((i % 2) * 2 - 1);
+		new_solution[(i >> 1) % current_solution.size()] +=
+			0.01 * ((i % 2) * 2 - 1);
 		if (f(new_solution) > f(current_solution))
 		{
 			current_solution = new_solution;
@@ -51,8 +59,7 @@ std::mt19937 gen{rd()};
 solution_t sim_annealing(std::function<double(solution_t)> f,
 						 const solution_t start,
 						 std::function<solution_t(solution_t)> N,
-						 std::function<double(int)> T,
-						 int K = 1000)
+						 std::function<double(int)> T, int K = 1000)
 {
 	using namespace std;
 
@@ -75,9 +82,8 @@ solution_t sim_annealing(std::function<double(solution_t)> f,
 			}
 		}
 	}
-	return *max_element(s.begin(), s.end(), [f](auto a, auto b) {
-		return f(a) < f(b);
-	});
+	return *max_element(s.begin(), s.end(),
+						[f](auto a, auto b) { return f(a) < f(b); });
 }
 
 void print_solution(solution_t solution)
@@ -94,6 +100,7 @@ int main()
 	using namespace std;
 
 	int hc_vs_sa = 0;
+	map<string, double> averages = {{"annealing", 0.0}, {"hillclimb", 0.0}};
 	for (int zz = 0; zz < 100; zz++)
 	{
 		uniform_real_distribution<> dist_(-50.0, 50.0);
@@ -105,30 +112,24 @@ int main()
 
 		auto solution_hc = hillclimb(f, start, K);
 
-		auto solution_sa = sim_annealing(f, start,
-										 [&f](solution_t s) {
-											 normal_distribution<> dist{0.0, 1.0};
-											 //uniform_real_distribution<> dist(-1.0, 1.0);
-											 //std::cout << "---: f: " <<  f(s) << " ";
-											 //print_solution(s);
-											 for (auto &e : s)
-											 {
-												 e = e + dist(gen);
-											 }
-											 //std::cout << "   : f: " <<  f(s) << " ";
-											 //print_solution(s);
-											 return s;
-										 },
-										 [](int k) -> double {
-											 return 1.0 / log((double)k);
-										 },
-										 K);
+		auto solution_sa =
+			sim_annealing(f, start,
+						  [&f](solution_t s) {
+							  normal_distribution<> dist{0.0, 1.0};
+							  for (auto &e : s)
+								  e = e + dist(gen);
+							  return s;
+						  },
+						  [](int k) -> double { return 1.0 / log((double)k); }, K);
 		cout << "hill climb: ";
 		std::cout << "   : f: " << f(solution_hc) << " ";
 		print_solution(solution_hc);
 		cout << "simmulated annealing: ";
 		std::cout << "   : f: " << f(solution_sa) << " ";
 		print_solution(solution_sa);
+		averages["hillclimb"] += f(solution_hc);
+		averages["annealing"] += f(solution_sa);
+		
 		if (f(solution_hc) < f(solution_sa))
 		{
 			hc_vs_sa++;
@@ -138,5 +139,9 @@ int main()
 			hc_vs_sa--;
 		}
 	}
-	std::cout << "Wynik to " << hc_vs_sa << "  (ile razy wyzarzanie bylo lepsze)" << std::endl;
+	std::cout << "Wynik to " << hc_vs_sa << "  (ile razy wyzarzanie bylo lepsze)"
+			  << std::endl;
+	for (auto &[k,v]:averages) {
+		cout <<"średnia dla " << k << " wynosi " << (v/100.0) << " (im wyższa wartość tym lepiej)" << endl; 
+	}
 }
