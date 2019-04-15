@@ -106,9 +106,10 @@ int main()
 		uniform_real_distribution<> dist_(-50.0, 50.0);
 		vector<double> start = {dist_(gen), dist_(gen)};
 
-		int K = 10000;
+		int K = 100000;
 
 		auto f = schaffer_4;
+		//auto f = sphere_function;
 
 		auto solution_hc = hillclimb(f, start, K);
 
@@ -121,27 +122,23 @@ int main()
 							  return s;
 						  },
 						  [](int k) -> double { return 1.0 / log((double)k); }, K);
-		cout << "hill climb: ";
-		std::cout << "   : f: " << f(solution_hc) << " ";
+		cout << "hill climb:           ";
+		cout << "   : f: " << f(solution_hc) << " ";
 		print_solution(solution_hc);
 		cout << "simmulated annealing: ";
-		std::cout << "   : f: " << f(solution_sa) << " ";
+		cout << "   : f: " << f(solution_sa) << " ";
 		print_solution(solution_sa);
 		averages["hillclimb"] += f(solution_hc);
 		averages["annealing"] += f(solution_sa);
-		
+
 		if (f(solution_hc) < f(solution_sa))
 		{
 			hc_vs_sa++;
 		}
-		else if (f(solution_hc) > f(solution_sa))
-		{
-			hc_vs_sa--;
-		}
 	}
-	std::cout << "Wynik to " << hc_vs_sa << "  (ile razy wyzarzanie bylo lepsze)"
-			  << std::endl;
-	for (auto &[k,v]:averages) {
-		cout <<"średnia dla " << k << " wynosi " << (v/100.0) << " (im wyższa wartość tym lepiej)" << endl; 
+	cout << "Simmulated annealing was better " << hc_vs_sa << " times" << endl;
+	for (auto &[k, v] : averages)
+	{
+		cout << "average for " << k << " is " << (v / 100.0) << " (higher value is better)" << endl;
 	}
 }
